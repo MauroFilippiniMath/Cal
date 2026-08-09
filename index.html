@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcolatore Corsa</title>
+    <title>RunCalc Advanced</title>
     <style>
         :root {
             --primary: #FF5722;
+            --accent: #03DAC6;
             --bg: #121212;
             --card: #1E1E1E;
             --text: #FFFFFF;
@@ -29,12 +30,18 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
         }
         h1 {
             text-align: center;
             margin-top: 0;
             color: var(--primary);
+            margin-bottom: 25px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
         .input-group {
             margin-bottom: 15px;
@@ -42,7 +49,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
         }
         input {
@@ -68,7 +75,7 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             transition: background-color 0.2s;
         }
         button:active {
@@ -84,91 +91,128 @@
         .stat {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 18px;
+            margin-bottom: 12px;
+            font-size: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+        .stat:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
         .stat strong {
             color: var(--primary);
         }
-        .stat:last-child {
-            margin-bottom: 0;
+        .stat.highlight strong {
+            color: var(--accent);
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1>RunCalc</h1>
+        <h1>RunCalc Pro</h1>
         
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="peso">Peso (kg)</label>
+                <input type="number" id="peso" placeholder="es. 70" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="eta">Età (anni)</label>
+                <input type="number" id="eta" placeholder="es. 18">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="distanza">Distanza (km)</label>
+                <input type="number" id="distanza" placeholder="es. 5" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="tempo">Tempo (minuti)</label>
+                <input type="number" id="tempo" placeholder="es. 30" step="1">
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="d_pos">Dislivello + (metri)</label>
+                <input type="number" id="d_pos" placeholder="es. 150" value="0">
+            </div>
+            <div class="input-group">
+                <label for="d_neg">Dislivello - (metri)</label>
+                <input type="number" id="d_neg" placeholder="es. 150" value="0">
+            </div>
+        </div>
+
         <div class="input-group">
-            <label for="peso">Peso (kg)</label>
-            <input type="number" id="peso" placeholder="es. 70" step="0.1">
+            <label for="note">Note (es. percorso, audiolibro, sensazioni)</label>
+            <input type="text" id="note" placeholder="Opzionale">
         </div>
         
-        <div class="input-group">
-            <label for="eta">Età (anni)</label>
-            <input type="number" id="eta" placeholder="es. 18">
-        </div>
-        
-        <div class="input-group">
-            <label for="distanza">Distanza (km)</label>
-            <input type="number" id="distanza" placeholder="es. 5" step="0.01">
-        </div>
-        
-        <div class="input-group">
-            <label for="tempo">Tempo (minuti)</label>
-            <input type="number" id="tempo" placeholder="es. 30" step="1">
-        </div>
-        
-        <button onclick="calcolaPrestazione()">Calcola</button>
+        <button onclick="calcolaPrestazione()">Calcola Statistiche</button>
 
         <div class="result-box" id="risultato">
+            <div class="stat highlight">
+                <span>Passo reale:</span>
+                <strong id="out-passo-reale">0'00"/km</strong>
+            </div>
             <div class="stat">
-                <span>Calorie bruciate:</span>
+                <span>Passo eq. in pianura:</span>
+                <strong id="out-passo-eq">0'00"/km</strong>
+            </div>
+            <div class="stat highlight">
+                <span>Calorie totali:</span>
                 <strong id="out-calorie">0 kcal</strong>
             </div>
             <div class="stat">
-                <span>Passo medio:</span>
-                <strong id="out-passo">0'00"/km</strong>
-            </div>
-            <div class="stat">
-                <span>Velocità media:</span>
-                <strong id="out-velocita">0 km/h</strong>
+                <span>Distanza eq. in pianura:</span>
+                <strong id="out-distanza-eq">0 km</strong>
             </div>
         </div>
     </div>
 
     <script>
+        function formattaPasso(minutiDecimali) {
+            const minuti = Math.floor(minutiDecimali);
+            const secondi = Math.floor((minutiDecimali - minuti) * 60);
+            const secFormattati = secondi < 10 ? '0' + secondi : secondi;
+            return `${minuti}'${secFormattati}"/km`;
+        }
+
         function calcolaPrestazione() {
             const peso = parseFloat(document.getElementById('peso').value);
-            const eta = parseFloat(document.getElementById('eta').value);
             const distanza = parseFloat(document.getElementById('distanza').value);
             const tempo = parseFloat(document.getElementById('tempo').value);
+            const dPos = parseFloat(document.getElementById('d_pos').value) || 0;
+            const dNeg = parseFloat(document.getElementById('d_neg').value) || 0;
 
-            if (!peso || !distanza || !tempo || !eta) {
-                alert("Compila tutti i campi per avere il risultato!");
+            if (!peso || !distanza || !tempo) {
+                alert("Compila almeno Peso, Distanza e Tempo per procedere.");
                 return;
             }
 
-            // Calcolo Calorie nette (Formula standard corsa: ~1.036 kcal per kg per km)
-            // L'età influisce sul metabolismo basale, ma per la fase attiva della corsa 
-            // peso e distanza sono i fattori dominanti.
-            let calorie = peso * distanza * 1.036;
+            // Calcolo Distanza Equivalente in Pianura (circa 1km extra ogni 100m di D+)
+            const distanzaEquivalente = distanza + (dPos / 100);
 
-            // Calcolo del passo (minuti per km)
-            const passoDecimale = tempo / distanza;
-            const passoMinuti = Math.floor(passoDecimale);
-            const passoSecondi = Math.floor((passoDecimale - passoMinuti) * 60);
-            const formattazioneSecondi = passoSecondi < 10 ? '0' + passoSecondi : passoSecondi;
+            // Calcolo Calorie (formula affinata per il dislivello)
+            // Base: 1.036 kcal/kg/km. Salita aggiunge fatica, discesa la riduce poco.
+            let calorieBase = peso * distanza * 1.036;
+            let calorieSalita = (dPos * peso) * 0.005; 
+            let calorieDiscesa = (dNeg * peso) * 0.001;
+            let calorieTotali = calorieBase + calorieSalita - calorieDiscesa;
 
-            // Calcolo velocità (km/h)
-            const ore = tempo / 60;
-            const velocita = distanza / ore;
+            // Calcolo Passi
+            const passoReale = tempo / distanza;
+            const passoEquivalente = tempo / distanzaEquivalente;
 
             // Aggiornamento interfaccia
-            document.getElementById('out-calorie').innerText = Math.round(calorie) + ' kcal';
-            document.getElementById('out-passo').innerText = `${passoMinuti}'${formattazioneSecondi}"/km`;
-            document.getElementById('out-velocita').innerText = velocita.toFixed(2) + ' km/h';
+            document.getElementById('out-passo-reale').innerText = formattaPasso(passoReale);
+            document.getElementById('out-passo-eq').innerText = formattaPasso(passoEquivalente);
+            document.getElementById('out-calorie').innerText = Math.round(calorieTotali) + ' kcal';
+            document.getElementById('out-distanza-eq').innerText = distanzaEquivalente.toFixed(2) + ' km';
             
             document.getElementById('risultato').style.display = 'block';
         }
