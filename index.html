@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore Corsa</title>
+    <style>
+        :root {
+            --primary: #FF5722;
+            --bg: #121212;
+            --card: #1E1E1E;
+            --text: #FFFFFF;
+            --text-muted: #B0B0B0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background-color: var(--card);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background-color: #2C2C2C;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: 2px solid var(--primary);
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        button:active {
+            background-color: #E64A19;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #2C2C2C;
+            border-radius: 10px;
+            display: none;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        .stat strong {
+            color: var(--primary);
+        }
+        .stat:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>RunCalc</h1>
+        
+        <div class="input-group">
+            <label for="peso">Peso (kg)</label>
+            <input type="number" id="peso" placeholder="es. 70" step="0.1">
+        </div>
+        
+        <div class="input-group">
+            <label for="eta">Età (anni)</label>
+            <input type="number" id="eta" placeholder="es. 18">
+        </div>
+        
+        <div class="input-group">
+            <label for="distanza">Distanza (km)</label>
+            <input type="number" id="distanza" placeholder="es. 5" step="0.01">
+        </div>
+        
+        <div class="input-group">
+            <label for="tempo">Tempo (minuti)</label>
+            <input type="number" id="tempo" placeholder="es. 30" step="1">
+        </div>
+        
+        <button onclick="calcolaPrestazione()">Calcola</button>
+
+        <div class="result-box" id="risultato">
+            <div class="stat">
+                <span>Calorie bruciate:</span>
+                <strong id="out-calorie">0 kcal</strong>
+            </div>
+            <div class="stat">
+                <span>Passo medio:</span>
+                <strong id="out-passo">0'00"/km</strong>
+            </div>
+            <div class="stat">
+                <span>Velocità media:</span>
+                <strong id="out-velocita">0 km/h</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calcolaPrestazione() {
+            const peso = parseFloat(document.getElementById('peso').value);
+            const eta = parseFloat(document.getElementById('eta').value);
+            const distanza = parseFloat(document.getElementById('distanza').value);
+            const tempo = parseFloat(document.getElementById('tempo').value);
+
+            if (!peso || !distanza || !tempo || !eta) {
+                alert("Compila tutti i campi per avere il risultato!");
+                return;
+            }
+
+            // Calcolo Calorie nette (Formula standard corsa: ~1.036 kcal per kg per km)
+            // L'età influisce sul metabolismo basale, ma per la fase attiva della corsa 
+            // peso e distanza sono i fattori dominanti.
+            let calorie = peso * distanza * 1.036;
+
+            // Calcolo del passo (minuti per km)
+            const passoDecimale = tempo / distanza;
+            const passoMinuti = Math.floor(passoDecimale);
+            const passoSecondi = Math.floor((passoDecimale - passoMinuti) * 60);
+            const formattazioneSecondi = passoSecondi < 10 ? '0' + passoSecondi : passoSecondi;
+
+            // Calcolo velocità (km/h)
+            const ore = tempo / 60;
+            const velocita = distanza / ore;
+
+            // Aggiornamento interfaccia
+            document.getElementById('out-calorie').innerText = Math.round(calorie) + ' kcal';
+            document.getElementById('out-passo').innerText = `${passoMinuti}'${formattazioneSecondi}"/km`;
+            document.getElementById('out-velocita').innerText = velocita.toFixed(2) + ' km/h';
+            
+            document.getElementById('risultato').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
